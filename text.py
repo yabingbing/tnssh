@@ -1,3 +1,4 @@
+import platform
 import sqlite3
 import requests
 from selenium import webdriver
@@ -40,6 +41,7 @@ def save_announcement(c, title, url):
 def fetch_announcement():
     # 設定要抓取的網址
     url = "https://www.tnssh.tn.edu.tw/category/imp/"
+    
 
     # 設定 Chrome 瀏覽器選項
     chrome_options = Options()
@@ -47,7 +49,10 @@ def fetch_announcement():
     chrome_options.add_argument("--disable-gpu")  # 禁用 GPU 加速
 
     # 設定 ChromeDriver 路徑
-    chrome_driver_path =   "./chromedriver.exe"            # "/home/iceiceyan618/driver/chromedriver"   修改為你的 ChromeDriver 路徑
+    if platform.system() == "Windows":
+     chrome_driver_path = "./drivers/chromedriver.exe"
+    else:
+     chrome_driver_path = "./drivers/chromedriver"          # "/home/iceiceyan618/driver/chromedriver"   修改為你的 ChromeDriver 路徑
 
     # 設定 WebDriver
     service = Service(chrome_driver_path)
