@@ -45,8 +45,11 @@ def fetch_announcement():
 
     # 設定 Chrome 瀏覽器選項
     chrome_options = Options()
-    chrome_options.add_argument("--headless")  # 無頭模式 (不顯示瀏覽器界面)
-    chrome_options.add_argument("--disable-gpu")  # 禁用 GPU 加速
+    chrome_options.add_argument("--headless=new")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--user-data-dir=/tmp/chrome_profile_$(uuidgen)")
+    chrome_options.add_argument("--disable-gpu")
 
     # 設定 ChromeDriver 路徑
     if platform.system() == "Windows":
