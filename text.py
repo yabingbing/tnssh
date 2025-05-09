@@ -50,6 +50,7 @@ def fetch_announcement():
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--user-data-dir=/tmp/chrome_profile_$(uuidgen)")
     chrome_options.add_argument("--disable-gpu")
+# 對於某些系統，可能需要添加這個選項
 
     # 設定 ChromeDriver 路徑
     if platform.system() == "Windows":
