@@ -16,7 +16,8 @@ RUN apt update && apt install -y \
 COPY . .
 
 # 5. 給 chromedriver 執行權限（你也可以直接用 Linux 版就不用 copy .exe）
-RUN chmod +x chromedriver
+RUN chmod +x ./drivers/chromedriver
+
 
 # 6. 安裝 Python 套件
 RUN pip install --no-cache-dir -r requirements.txt
