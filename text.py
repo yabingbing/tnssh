@@ -79,7 +79,7 @@ def fetch_announcement():
     articles = driver.find_elements(By.XPATH, "//article")
 
     # 要查找的關鍵字，進行不區分大小寫匹配
-    keywords = ["高一", "全校", "重要公告", "113學年","114學年","衛生組"]
+    keywords = ["高一", "全校", "重要公告", "113學年","114學年","衛生組","K館"]
     results = []
 
     # 設定數據庫

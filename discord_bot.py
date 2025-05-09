@@ -34,7 +34,7 @@ async def fetch_announcements():
         await fetch_and_send_announcements()
 
 async def fetch_and_send_announcements():
-    channel_id = 1132259878006706217  # 替換成你自己的 Discord 頻道 ID
+    channel_id = 1279494493065838724  # 替換成你自己的 Discord 頻道 ID
     channel = bot.get_channel(channel_id)
     
     if channel:
