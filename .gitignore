@@ -1,4 +1,5 @@
 .env
 __pycache__/
-announcements.db
+
 *.pyc
+announcements.db
