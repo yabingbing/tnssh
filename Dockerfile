@@ -28,4 +28,4 @@ ENV CHROME_BIN="/usr/bin/chromium"
 ENV CHROMEDRIVER_PATH="/usr/bin/chromedriver"
 
 # 8. 執行你的 bot
-CMD ["python", "discord_bot.py"]
+CMD ["python", "main.py"]
