@@ -92,7 +92,8 @@ class Main(commands.Cog):
         quote = random.choice(self.quotes_data.get(greeting_type, ["哈囉！"]))
         tip = random.choice(self.quotes_data.get(f"{greeting_type}提示", ["今天是個適合吃飯的日子。"]))
 
-        response = quote.replace("<@id>", f"<@{user_id}>") + " " + tip
+        response = quote.replace("<@id>", f"<@{user_id}>") + " " 
+        # + tip 這個放上去後面會加一串tip
         await message.channel.send(response)
         await self.bot.process_commands(message)
 
