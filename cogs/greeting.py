@@ -12,26 +12,7 @@ load_dotenv()
 
 sheet_id = os.getenv("sheet_id")  # 請在 .env 檔案中設定 SHEET_ID
 
-def write_credentials_json():
-    credentials_dict = {
-        "type": "service_account",
-        "project_id": os.getenv("PROJECT_ID"),
-        "private_key_id": os.getenv("PRIVATE_KEY_ID"),
-        "private_key": os.getenv("PRIVATE_KEY").replace("\\n", "\n"),
-        "client_email": os.getenv("CLIENT_EMAIL"),
-        "client_id": os.getenv("CLIENT_ID"),
-        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-        "token_uri": "https://oauth2.googleapis.com/token",
-        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-        "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{os.getenv('CLIENT_EMAIL')}",
-        "universe_domain": "googleapis.com"
-    }
 
-    with open("credentials.json", "w", encoding="utf-8") as f:
-        json.dump(credentials_dict, f, ensure_ascii=False, indent=2)
-
-# 寫入檔案
-write_credentials_json()
 class Main(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
