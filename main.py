@@ -48,6 +48,7 @@ async def main():
     await bot.load_extension("cogs.greeting")  # 如 greeting cog 存在則一起載入
     await bot.load_extension("cogs.answer_book")  # 如 answer_book cog 存在則一起載入
     await bot.load_extension("cogs.sum")  # 如 sum cog 存在則一起載入
+    await bot.load_extension("cogs.recipes")  # 如 recipes cog 存在則一起載入
     await bot.start(DISCORD_TOKEN)
 
 asyncio.run(main())
