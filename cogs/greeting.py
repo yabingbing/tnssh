@@ -66,7 +66,7 @@ class Main(commands.Cog):
 
         greeting_type = self.get_greeting_type(message.content)
         if not greeting_type:
-            await self.bot.process_commands(message)
+            
             return
 
         user_id = str(message.author.id)
@@ -76,7 +76,7 @@ class Main(commands.Cog):
         response = quote.replace("<@id>", f"<@{user_id}>") + " " 
         # + tip 這個放上去後面會加一串tip
         await message.channel.send(response)
-        await self.bot.process_commands(message)
+        return
 
 async def setup(bot):
     await bot.add_cog(Main(bot))
