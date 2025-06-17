@@ -31,7 +31,7 @@ class SummaryCog(commands.Cog):
         try:
              
             async with ctx.typing():
-             summary = call_gemini(prompt)
+             summary = call_gemini(prompt,ctx.channel.id)
              await asyncio.sleep(5)
             print (f"{summary}")
             await ctx.send(f"**以下是你要的統整：**\n{summary}")

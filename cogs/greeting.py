@@ -59,14 +59,12 @@ class Main(commands.Cog):
             return "晚安"
         return None
 
-    @commands.Cog.listener()
-    async def on_message(self, message):
+    async def handle_message(self, message):  # 👈 改成 handle_message
         if message.author.bot:
             return
 
         greeting_type = self.get_greeting_type(message.content)
         if not greeting_type:
-            
             return
 
         user_id = str(message.author.id)
