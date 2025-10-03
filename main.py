@@ -16,7 +16,7 @@ intents.message_content = True
 intents.messages = True
 intents.guilds = True 
 
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(command_prefix="b!", intents=intents)
 
 def write_credentials_json():
     credentials_dict = {
@@ -94,23 +94,6 @@ async def main():
     await bot.load_extension("cogs.andy")  # 如 andy cog 存在則一起載入
     await bot.load_extension("Bing.Bing1")  # 如 gemini_chat cog 存在則一起載入
     await bot.start(DISCORD_TOKEN)
-
-# --- Web Server for Render 健康檢查 ---
-PORT = int(os.environ.get("PORT", 8080))
-
-class HealthCheckHandler(SimpleHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header("Content-type", "text/plain")
-        self.end_headers()
-        self.wfile.write(b"Discord Bot is alive and well!")
-
-def run_web_server():
-    with socketserver.TCPServer(("0.0.0.0", PORT), HealthCheckHandler) as httpd:
-        print(f"🌐 Web Server 正在監聽埠 {PORT}（Render 健康檢查）")
-        httpd.serve_forever()
-
-threading.Thread(target=run_web_server, daemon=True).start()
 
 
 
