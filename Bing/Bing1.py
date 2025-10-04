@@ -24,23 +24,14 @@ class GeminiChat(commands.Cog):
         self.message_buffer = deque(maxlen=10)  # 短期對話緩衝
         self.prompt = self.load_prompt()
 
-        # 嘗試讀取範例訊息
-        try:
-            with open("Bing/filtered_messages.txt", 'r', encoding='utf-8') as f:
-                filtered_messages = f.read()
-        except FileNotFoundError:
-            filtered_messages = "You are a helpful assistant."
-
-        self.prompt += "\n以下是語句範例：\n" + filtered_messages
-
         # 初始化 Gemini
         try:
             genai.configure(api_key=GEMINI_API_KEY)
             self.model = genai.GenerativeModel(
-                model_name="gemini-2.5-flash",
+                model_name="gemini-2.5-flash-lite",
                 system_instruction=self.prompt
             )
-            print("✅ Gemini Model (gemini-2.5-flash) loaded successfully with system prompt.")
+            print("✅ Gemini Model (gemini-2.5-flash-lite) loaded successfully with system prompt.")
         except Exception as e:
             print(f"❌ Failed to configure Gemini Model: {e}")
             self.model = None
@@ -61,7 +52,7 @@ class GeminiChat(commands.Cog):
 
     def load_history(self):
         if os.path.exists(HISTORY_FILE):
-            with open(HISTORY_FILE, 'r', encoding="utf-8") as f:
+            with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
                 try:
                     return json.load(f)
                 except json.JSONDecodeError:
@@ -83,6 +74,28 @@ class GeminiChat(commands.Cog):
         with open(MEMORY_FILE, 'w', encoding="utf-8") as f:
             json.dump(memory, f, ensure_ascii=False, indent=2)
 
+    # ------------------ 共用回覆發送 ------------------
+    async def safe_send(self, message: discord.Message, reply: str):
+        """安全發送訊息（分段 / 一次送）"""
+        try:
+            if reply.count("\n") < 15:
+                # 行數少，逐行送
+                for line in reply.split("\n"):
+                    if not line.strip():
+                        continue
+                    try:
+                        await message.channel.send(line[:1900])  # Discord 限制 2000 字
+                    except:
+                        continue
+            else:
+                # 行數多，整段送
+                try:
+                    await message.channel.send(reply[:1900])
+                except:
+                    await message.channel.send("-# Hmmm. Something went wrong.")
+        except Exception as e:
+            print(f"❌ Send error: {e}")
+
     # ------------------ 自動回覆 ------------------
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -90,15 +103,28 @@ class GeminiChat(commands.Cog):
             return
 
         # 加入短期訊息緩衝
-        self.message_buffer.append(f"{message.author.display_name}: {message.content}")
+        self.message_buffer.append(f"{message.author.name}: {message.content}")
 
-        # 觸發條件 1: 隨機骰子 (1/10)
-        if random.randint(1, 100) == 1:
-            await self.try_autoreply(message)
+        if isinstance(message.channel, discord.DMChannel):
+        # 📩 在私訊裡，永遠回覆
+           await self.try_chat_reply(message)
+           return
+
+        # 觸發條件 1: 隨機骰子 (1/100)
+       # if random.randint(1, 100) == 1:
+  #          await self.try_autoreply(message)
 
         # 觸發條件 2: @bot 或 回覆 bot
-        if self.bot.user in message.mentions or message.reference:
+        if self.bot.user in message.mentions:
             await self.try_chat_reply(message)
+        elif message.reference:
+          try:
+             ref_msg = await message.channel.fetch_message(message.reference.message_id)
+             if ref_msg.author.id == self.bot.user.id:  # 確認是回覆 bot
+               await self.try_chat_reply(message)
+          except Exception as e:
+              print(f"❌ Failed to fetch referenced message: {e}")
+    
 
     async def try_autoreply(self, message: discord.Message):
         try:
@@ -109,7 +135,7 @@ class GeminiChat(commands.Cog):
             reply_text = response.text.strip()
 
             if reply_text:
-                await message.reply(reply_text[:1900])
+                await self.safe_send(message, reply_text)
 
                 # 存進短期記憶
                 memory = self.load_memory()
@@ -121,6 +147,7 @@ class GeminiChat(commands.Cog):
             print(f"❌ AutoReply error: {e}")
 
     async def try_chat_reply(self, message: discord.Message):
+        
         try:
             async with message.channel.typing():
                 history = self.load_history()
@@ -133,12 +160,12 @@ class GeminiChat(commands.Cog):
                 ]
 
                 response = await self.model.generate_content_async(content)
-                reply = response.text
+                reply = response.text.strip()
 
-                await message.reply(reply)
+                await self.safe_send(message, reply)
 
                 # 存進短期記憶
-                memory.append({"role": "user", "parts": [message.content]})
+                memory.append({"role": "user", "parts": [f"{message.author.name}: {message.content}"]})
                 memory.append({"role": "model", "parts": [reply]})
                 self.save_memory(memory)
 

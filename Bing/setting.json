@@ -1,6 +1,6 @@
 {
-    "bot_prefix":"!",
-    "model":"gemini-2.0-flash-exp",
+    "bot_prefix":"b!",
+    "model":"gemini-2.5-lite",
     "generation_config":{
         "temperature": 0.9,
         "top_p": 1,
