@@ -156,7 +156,7 @@ class GeminiChat(commands.Cog):
                 content = [
                     *history,
                     *memory,
-                    {"role": "user", "parts": [message.content]}
+                    {"role": "user", "parts": [f"{message.author.name}: {message.content}"]}
                 ]
 
                 response = await self.model.generate_content_async(content)
