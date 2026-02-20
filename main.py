@@ -95,6 +95,7 @@ async def main():
     await bot.load_extension("Bing.Bing1")  # 如 gemini_chat cog 存在則一起載入
     await bot.load_extension("cogs.repeat_detector")
     await bot.load_extension("Bing.image")  # 載入圖片生成 cog
+    await bot.load_extension("Bing.video")  # 載入影片生成 cog
     await bot.start(DISCORD_TOKEN)
 
 
