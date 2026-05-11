@@ -5,8 +5,8 @@ import json
 import os
 from datetime import datetime
 import dotenv
-dotenv.load_dotenv()  # 從 .env 檔案讀取環境變數
-GEMINI_API_KEY = os.getenv("gemini_api_key")  # 從環境變數讀取 Gemini API 金鑰
+dotenv.load_dotenv()  # 載入本機環境變數。
+GEMINI_API_KEY = os.getenv("gemini_api_key")  # 從環境變數讀取 Gemini API 金鑰。
 
 MEMORY_FILE = "Bing/memory.json"
 PROMPT_FILE = "Bing/prompt.txt"
@@ -64,7 +64,7 @@ class Bing(commands.Cog):
             prompt = self.load_prompt()
             history = self.load_history()
 
-            # Gemini input
+            # 組合送給 Gemini 的系統提示、歷史與本次訊息。
             content = [
                 {"role": "system", "parts": [prompt]},
                 *history,
@@ -77,12 +77,12 @@ class Bing(commands.Cog):
             reply = response.text
             await message.reply(reply)
 
-            # 更新記憶
+            # 更新此使用者的短期記憶。
             user_history.append(reply)
             memory[user_id] = user_history
             self.save_memory(memory)
 
-            # 加入長期 history
+            # 將對話加入共用歷史紀錄。
             history.append({"role": "user", "parts": [message.content]})
             history.append({"role": "model", "parts": [reply]})
             self.save_history(history)

@@ -8,26 +8,36 @@ import asyncio
 from dotenv import load_dotenv
 import os
 import random
+from urllib.parse import quote
 
 load_dotenv()
-POLLINATIONS_KEY = os.getenv("pollinations_key")
+POLLINATIONS_KEY = os.getenv("POLLINATIONS_KEY") or os.getenv("pollinations_key")
+
+def build_pollinations_video_url(prompt: str) -> str:
+    return f"https://gen.pollinations.ai/image/{quote(prompt, safe='')}"
+
+def build_pollinations_headers(api_key: str = None) -> dict:
+    headers = {"Accept": "*/*"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    return headers
 
 class VideoGenCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        # 設定同時處理的最大人數
+        # 限制同時處理數量，避免影片生成請求互相阻塞。
         self.max_concurrent_tasks = 1
         self.semaphore = asyncio.Semaphore(self.max_concurrent_tasks)
         self.waiting_count = 0
 
     @app_commands.command(name="生成影片", description="輸入提示詞生成影片 (使用 Grok Video)")
-    @app_commands.rename(translate_prompt="翻譯提示詞")  # Discord UI 顯示名稱
+    @app_commands.rename(translate_prompt="翻譯提示詞")  # 設定 Discord 指令參數顯示名稱。
     @app_commands.describe(prompt="輸入想要生成的影片內容", translate_prompt="是否由 AI 翻譯成英文 (預設: 否)")
     async def generate_video(
         self, 
         interaction: discord.Interaction, 
         prompt: str, 
-        translate_prompt: bool = False # 默認否
+        translate_prompt: bool = False # 預設不翻譯提示詞。
     ):
         await interaction.response.defer()
 
@@ -47,27 +57,23 @@ class VideoGenCog(commands.Cog):
                 if queue_number > 0:
                     await status_message.edit(content=" 輪到您了！正在開始製作影片...")
 
-                # --- 翻譯邏輯 (同圖片生成) ---
-                final_prompt = prompt  # 預設使用原始提示詞
+                # 準備實際送往影片生成 API 的提示詞。
+                final_prompt = prompt  # 預設使用原始提示詞。
                 
                 if translate_prompt:
                     try:
                         instruction = f"請將以下文字完整翻譯成英文，不要改意思，只翻譯文字，不要加多餘說明:\n{prompt}"
-                        translated_text = call_gemini(instruction).strip()
+                        translated_text = await asyncio.to_thread(call_gemini, instruction)
+                        translated_text = translated_text.strip()
                         final_prompt = translated_text
                     except Exception as e:
                         print(f"翻譯失敗: {e}")
                         await interaction.followup.send(f" 翻譯服務暫時無法使用，將使用原始提示詞生成。", ephemeral=True)
                         final_prompt = prompt
-                # ---------------------------
-
-                # 2️⃣ 請求 API (使用 final_prompt)
-                url = f"https://gen.pollinations.ai/image/{final_prompt}"
+                # 使用 final_prompt 呼叫 Pollinations 影片生成 API。
+                url = build_pollinations_video_url(final_prompt)
                 
-                headers = {
-                    "Accept": "*/*",
-                    "Authorization": f"Bearer {POLLINATIONS_KEY}" if POLLINATIONS_KEY else None
-                }
+                headers = build_pollinations_headers(POLLINATIONS_KEY)
                 
                 params = {
                     "model": "grok-video",
@@ -75,11 +81,11 @@ class VideoGenCog(commands.Cog):
                     "enhance": "false"
                 }
 
-                # 使用 run_in_executor
+                # requests 是同步函式，放到執行緒避免卡住 bot。
                 loop = asyncio.get_event_loop()
                 response = await loop.run_in_executor(
                     None, 
-                    # 影片生成較慢，Timeout 維持 120秒
+                    # 影片生成較慢，保留較長 timeout。
                     lambda: requests.get(url, headers=headers, params=params, timeout=300) 
                 )
 
@@ -87,10 +93,10 @@ class VideoGenCog(commands.Cog):
                     video_data = io.BytesIO(response.content)
                     discord_file = discord.File(fp=video_data, filename="result.mp4")
                     
-                    # 組合訊息
+                    # 建立回傳給 Discord 的結果訊息。
                     msg_content = f" **影片生成完畢！**\n**提示詞:** {prompt}"
                     
-                    # 如果有開啟翻譯，顯示翻譯後的內容
+                    # 有翻譯時一併顯示實際使用的提示詞。
                     if translate_prompt:
                         msg_content += f"\n**翻譯提示詞:** {final_prompt}"
                         
@@ -106,7 +112,7 @@ class VideoGenCog(commands.Cog):
             except requests.Timeout:
                 await status_message.edit(content=" 請求超時：影片生成花費太長時間，請稍後再試。")
             except Exception as e:
-                # 這裡加個判斷，如果 status_message 還沒發送成功 (極端情況)，用 followup 發
+                # 若狀態訊息尚未建立，改用 followup 回報錯誤。
                 if status_message:
                     await status_message.edit(content=f"發生錯誤：{str(e)}")
                 else:
@@ -115,6 +121,6 @@ class VideoGenCog(commands.Cog):
             finally:
                 self.waiting_count -= 1
 
-# 載入函數
+# Discord 載入此 Cog 時會呼叫 setup。
 async def setup(bot):
     await bot.add_cog(VideoGenCog(bot))

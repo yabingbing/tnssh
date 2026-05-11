@@ -16,7 +16,7 @@ class AnswerBook(commands.Cog):
         self.answers = []
         self.load_answers()
 
-        # 註冊 message context menu command（訊息指令）
+        # 註冊 Discord 訊息右鍵選單指令。
         bot.tree.add_command(
             discord.app_commands.ContextMenu(
                 name="答案之書",
@@ -26,12 +26,12 @@ class AnswerBook(commands.Cog):
         )
 
     def load_answers(self):
-        """ 從試算表讀取所有答案，假設答案在第一欄（A欄） """
-        self.answers = self.sheet.col_values(7)[1:]  # 忽略標題列
+        """從試算表指定欄位讀取答案清單。"""
+        self.answers = self.sheet.col_values(7)[1:]  # 第一列為標題，略過不使用。
         print(f"✅ 載入 {len(self.answers)} 筆答案")
 
     def add_answer(self, text):
-        """ 新增一行答案到試算表 """
+        """將新答案追加到試算表。"""
         self.sheet.append_row([text])
         self.answers.append(text)
         print(f"✅ 新增答案：{text}")
@@ -44,8 +44,8 @@ class AnswerBook(commands.Cog):
         question = message.content
         await interaction.response.send_message(f"📘 針對：『{question}』這個問題\n📖 答案之書給了你答案：\n『{answer}』", ephemeral=False)
 
-# Cog 加載
+# Discord 載入此 Cog 時會呼叫 setup。
 async def setup(bot):
-    # 你要自己改成你的 sheet_id
+    # 從環境變數取得答案之書使用的試算表 ID。
     SHEET_ID = os.getenv("sheet_id") 
     await bot.add_cog(AnswerBook(bot, SHEET_ID))

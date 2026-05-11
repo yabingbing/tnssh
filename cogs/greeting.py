@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-sheet_id = os.getenv("sheet_id")  # 請在 .env 檔案中設定 SHEET_ID
+sheet_id = os.getenv("sheet_id")  # 從環境變數讀取 Google Sheet ID
 
 
 class Main(commands.Cog):
@@ -59,7 +59,7 @@ class Main(commands.Cog):
             return "晚安"
         return None
 
-    async def handle_message(self, message):  # 👈 改成 handle_message
+    async def handle_message(self, message):  # 集中處理符合問候關鍵字的訊息
         if message.author.bot:
             return
 
@@ -72,7 +72,7 @@ class Main(commands.Cog):
         tip = random.choice(self.quotes_data.get(f"{greeting_type}提示", ["今天是個適合吃飯的日子。"]))
 
         response = quote.replace("<@id>", f"<@{user_id}>") + " " 
-        # + tip 這個放上去後面會加一串tip
+        # 若需要提示文字，可在回覆後方加上 tip。
         await message.channel.send(response)
         return
 

@@ -11,7 +11,7 @@ class SummaryCog(commands.Cog):
     @commands.command(name='sum')
     async def summarize_messages(self, ctx, limit: int = 100):
       
-        """統整指定數量內的訊息"""
+        """摘要指定數量內的近期訊息。"""
         if limit > 500:
             await ctx.send("最多只能看 500 則訊息啦！")
             return
@@ -22,16 +22,16 @@ class SummaryCog(commands.Cog):
                 messages.append(f"{message.author.name}: {message.content}")
 
         prompt = "用你主觀的角度統整評價這些話題語句 並且您的回覆不能超過200字： \n\n"
-        prompt += "\n".join(reversed(messages))  # 由舊到新
+        prompt += "\n".join(reversed(messages))  # 依時間順序整理，舊訊息在前。
 
         
         
 
-        # 呼叫 Gemini API
+        # 將整理好的對話送給 Gemini 產生摘要。
         try:
              
             async with ctx.typing():
-             summary = call_gemini(prompt)
+             summary = await asyncio.to_thread(call_gemini, prompt)
              await asyncio.sleep(5)
             print (f"{summary}")
             await ctx.send(f"**以下是你要的統整：**\n{summary}")

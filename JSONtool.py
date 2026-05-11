@@ -4,15 +4,15 @@ import asyncio
 import os
 import dotenv
 from dotenv import load_dotenv
-load_dotenv()  # 從 .env 檔案讀取環境變數
+load_dotenv()  # 載入本機環境變數。
 
 
 
-TOKEN = os.getenv('DISCORD_TOKEN')  # 從環境變數讀取 Discord Bot Token
-CHANNEL_ID = 1203004081187070045  # 例如：123456789012345678
-TARGET_USERNAME = 'koala._.lol'  # 指定要篩選的使用者（username，不是nickname）
-MAX_MESSAGES = 5000  # 從頻道中抓最多幾則訊息
-FILTER_ONLY = True   # 是否只儲存來自 TARGET_USERNAME 的訊息
+TOKEN = os.getenv('DISCORD_TOKEN')  # 從環境變數讀取 Discord bot token。
+CHANNEL_ID = 1203004081187070045  # 要備份訊息的 Discord 頻道 ID。
+TARGET_USERNAME = 'koala._.lol'  # 篩選目標 username，不是伺服器暱稱。
+MAX_MESSAGES = 5000  # 最多讀取的歷史訊息數量。
+FILTER_ONLY = True   # True 時只輸出目標使用者的訊息。
 
 intents = discord.Intents.default()
 intents.message_content = True
