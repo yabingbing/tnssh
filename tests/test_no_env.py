@@ -132,7 +132,13 @@ class NoEnvLogicTest(unittest.TestCase):
     def test_live_crawler_fetches_school_announcements(self):
         text = quiet_call(import_without_dotenv, "text")
 
-        result = quiet_call(text.fetch_announcement)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(tmpdir)
+                result = quiet_call(text.fetch_announcement)
+            finally:
+                os.chdir(old_cwd)
 
         self.assertIsInstance(result, str)
         self.assertTrue(result.strip())
