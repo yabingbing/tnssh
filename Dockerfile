@@ -1,31 +1,25 @@
-# 1. 使用 Python 的官方映像檔
 FROM python:3.12-slim
 
-# 2. 設定工作目錄
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV DEBIAN_FRONTEND=noninteractive
+
 WORKDIR /app
 
-# 3. 安裝必要工具（例如 Chromium）
-RUN apt update && apt install -y \
-    wget \
-    unzip \
+# 安裝 Chromium 與系統 chromedriver，避免依賴 repo 內的二進位檔。
+RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
     chromium-driver \
-    && apt clean
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-# 4. 複製專案檔案到容器中
-COPY . .
-
-# 5. 給 chromedriver 執行權限（你也可以直接用 Linux 版就不用 copy .exe）
-RUN chmod +x ./drivers/chromedriver
-
-
-# 6. 安裝 Python 套件
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 7. 設定環境變數，讓 selenium 找到 Chrome
+COPY . .
+
 ENV PATH="/usr/lib/chromium:${PATH}"
 ENV CHROME_BIN="/usr/bin/chromium"
 ENV CHROMEDRIVER_PATH="/usr/bin/chromedriver"
 
-# 8. 執行你的 bot
 CMD ["python", "main.py"]

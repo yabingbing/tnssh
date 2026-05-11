@@ -8,13 +8,13 @@ import os
 import json
 from dotenv import load_dotenv
 
-# 載入 .env
+# 載入本機環境變數。
 load_dotenv()
 
-# 從環境變數拿 Key
+# 從環境變數讀取 Gemini API 金鑰。
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-# 初始化 Gemini
+# 初始化 Gemini 模型。
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel("gemini-2.5-flash")
 
@@ -23,9 +23,9 @@ MEMORY_FILE = "Bing/memory.json"
 class GeminiReplyCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.message_buffer = deque(maxlen=10)  # 記錄最近訊息
+        self.message_buffer = deque(maxlen=10)  # 保留最近訊息作為回覆上下文。
 
-        # 確保記憶檔案存在
+        # 確保記憶檔案存在，避免首次啟動讀取失敗。
         os.makedirs("Bing", exist_ok=True)
         if not os.path.exists(MEMORY_FILE):
             with open(MEMORY_FILE, 'w', encoding="utf-8") as f:
@@ -47,10 +47,10 @@ class GeminiReplyCog(commands.Cog):
         if message.author.bot:
             return
         
-        # 存最近訊息
+        # 記錄最近訊息，供隨機回覆時參考。
         self.message_buffer.append(f"{message.author.display_name}: {message.content}")
 
-        # 丟骰子決定觸發 (1/10)
+        # 隨機決定是否觸發自動回覆。
         if random.randint(1, 50) == 1:
             await self.try_gemini_reply(message)
 
@@ -63,10 +63,10 @@ class GeminiReplyCog(commands.Cog):
 
             reply_text = response.text.strip()
             if reply_text:
-                # 用 reply 回覆觸發的訊息
+                # 以 reply 方式回覆觸發訊息。
                 await message.reply(reply_text[:1900])
 
-                # ✅ 把這次對話存進短期記憶
+                # 將本次對話保存到短期記憶。
                 memory = self.load_memory()
                 memory.append({"role": "user", "parts": [message.content]})
                 memory.append({"role": "model", "parts": [reply_text]})

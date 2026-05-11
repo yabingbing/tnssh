@@ -27,7 +27,7 @@ class Recipe(commands.Cog):
     async def recipe(self, interaction: discord.Interaction, category: str = None):
         await interaction.response.defer()
 
-        # 決定要搜尋的資料夾
+        # 依使用者指定分類決定搜尋範圍。
         if category:
             folder_path = os.path.join(self.recipe_dir, category)
             if not os.path.exists(folder_path):
@@ -35,12 +35,12 @@ class Recipe(commands.Cog):
                 return
             folders = [folder_path]
         else:
-            # 如果沒輸入分類就從所有資料夾中抽
+            # 未指定分類時，從所有食譜資料夾中抽選。
             folders = []
             for root, _, _ in os.walk(self.recipe_dir):
                 folders.append(root)
 
-        # 開始隨機挑一張圖片
+        # 隨機挑選第一個含圖片的食譜資料夾。
         random.shuffle(folders)
         for path in folders:
             result = self.get_recipe_from_folder(path)

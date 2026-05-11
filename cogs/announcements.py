@@ -1,11 +1,18 @@
 import discord
 from discord.ext import commands, tasks
 from datetime import datetime, time
-from text import fetch_announcement  # 確保這個模組存在於專案根目錄
+from text import fetch_announcement  # 從根目錄的爬蟲模組取得公告資料
 from dotenv import load_dotenv
 import os
+import asyncio
 load_dotenv()
-channel_id1 = os.getenv("CHANNEL_ID")  # 請在 .env 檔案中設定 CHANNEL_ID
+channel_id1 = os.getenv("CHANNEL_ID")  # 從環境變數讀取公告頻道 ID
+
+def parse_channel_id(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
 
 class Announcements(commands.Cog):
     def __init__(self, bot):
@@ -24,10 +31,14 @@ class Announcements(commands.Cog):
             await self.fetch_and_send_announcements()
 
     async def fetch_and_send_announcements(self):
-        channel_id = channel_id1     # 替換成你的頻道 ID
+        channel_id = parse_channel_id(channel_id1)
+        if channel_id is None:
+            print("❌ CHANNEL_ID 未設定或不是有效數字，無法發送公告。")
+            return
+
         channel = self.bot.get_channel(channel_id)
         if channel:
-            announcements = fetch_announcement()
+            announcements = await asyncio.to_thread(fetch_announcement)
             if announcements:
                 announcement_list = announcements.split("\n\n")
                 for announcement in announcement_list:
@@ -42,7 +53,7 @@ class Announcements(commands.Cog):
 
     @commands.command()
     async def get_announcements(self, ctx):
-        announcements = fetch_announcement()
+        announcements = await asyncio.to_thread(fetch_announcement)
         if announcements:
             announcement_list = announcements.split("\n\n")
             for announcement in announcement_list:
