@@ -32,3 +32,23 @@ docker run --rm tnssh-bot python -m unittest discover -s tests
 ```bash
 docker run --rm -e RUN_LIVE_CRAWLER_TEST=1 tnssh-bot python -m unittest discover -s tests
 ```
+
+## Debian 測試腳本
+
+在 Debian 或相容系統上，可以用腳本建立虛擬環境、安裝 Python 依賴並執行離線測試：
+
+```bash
+scripts/test_debian.sh
+```
+
+第一次在乾淨系統上執行時，可一併安裝 Chromium、chromedriver 與 Python 系統套件：
+
+```bash
+scripts/test_debian.sh --install-system-deps
+```
+
+若要啟用會連線學校網站的爬蟲測試：
+
+```bash
+scripts/test_debian.sh --live-crawler
+```
